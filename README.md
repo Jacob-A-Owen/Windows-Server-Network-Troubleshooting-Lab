@@ -1,486 +1,260 @@
-\# Windows Server Network Troubleshooting and Connectivity Restoration Lab
+# Windows Server Network Troubleshooting and Connectivity Restoration Lab
 
+## Overview
 
+This project demonstrates a structured troubleshooting methodology used to identify, diagnose, and resolve network connectivity issues in a Windows Server environment.
 
-\## Overview
+The lab was performed using Windows Server 2022 running in VirtualBox. A network connectivity issue was intentionally investigated using multiple administrative tools to determine the root cause, validate network services, and restore communication with external resources.
 
+## Technologies Used
 
+* Windows Server 2022
+* VirtualBox
+* Windows PowerShell
+* TCP/IP
+* DNS
+* Ping
+* Nslookup
+* Route Table Analysis
+* Event Viewer
+* Netstat
 
-This project demonstrates a structured troubleshooting methodology used by Systems Administrators to identify, diagnose, and resolve network connectivity issues in a Windows Server environment.
+---
 
+## Identifying the Network Problem
 
+When troubleshooting network issues, administrators first verify whether the system can communicate with external resources.
 
-The lab was performed using Windows Server 2022 running in VirtualBox. During testing, the server was unable to communicate with external resources due to an incorrect virtual network configuration. Multiple diagnostic tools were used to investigate the issue, identify the root cause, implement corrective action, and verify successful resolution.
+### Network Connectivity Testing
 
+The first test was performed using both IP-based and hostname-based communication. Successful replies from both 8.8.8.8 and google.com confirmed that network connectivity and DNS resolution were functioning after corrective action was implemented.
 
+Key observations:
 
-\## Technologies Used
+* 0% packet loss
+* Successful communication with external networks
+* Successful hostname resolution
+* Normal network latency
 
+![Network Connectivity Restored](screenshots/01-network-connectivity-restored.png)
 
+---
 
-\* Windows Server 2022
+## Reviewing TCP/IP Configuration
 
-\* VirtualBox
+Once connectivity was confirmed, the server's network configuration was reviewed.
 
-\* Windows PowerShell
+### IP Configuration Analysis
 
-\* TCP/IP
+The `ipconfig /all` command provides detailed information about the network adapter, including IP addressing, DNS configuration, DHCP information, and default gateway settings.
 
-\* DNS
+Key observations:
 
-\* Ping
+* IPv4 address assigned successfully
+* Valid subnet mask present
+* Default gateway configured
+* DNS server configuration identified
+* DHCP lease information available
 
-\* Nslookup
+This information confirms that the server received proper network settings from the network infrastructure.
 
-\* Route Table Analysis
+![IP Configuration Review](screenshots/02-ip-configuration-review.png)
 
-\* Event Viewer
+---
 
-\* Netstat
+## Testing DNS Resolution
 
+A common cause of network problems is DNS failure. DNS testing verifies whether hostnames can be translated into IP addresses.
 
+### DNS Name Resolution Validation
 
-\---
+The `nslookup` command was used to query Google's DNS records.
 
+Key observations:
 
+* DNS query completed successfully
+* Multiple IPv4 addresses returned
+* Multiple IPv6 addresses returned
+* Hostname resolution functioning properly
 
-\## Problem Identification
+Because DNS responses were returned successfully, DNS services were eliminated as the source of the original connectivity issue.
 
+![DNS Resolution Test](screenshots/03-dns-resolution-test.png)
 
+---
 
-Initial testing revealed that the server could not communicate with external resources.
+## Verifying Network Routing
 
+After confirming IP addressing and DNS functionality, the server routing table was reviewed.
 
+### Route Table Analysis
 
-\### Connectivity Failure
+The routing table determines how traffic leaves the server and reaches other networks.
 
+Key observations:
 
+* Default route (0.0.0.0) present
+* Gateway configured as 10.0.2.2
+* Local network routes available
+* No obvious routing conflicts detected
 
-Basic network testing was performed to verify internet access and DNS functionality.
+The presence of a valid default route confirmed that outbound traffic had a path to external networks.
 
+![Routing Table Review](screenshots/04-routing-table-review.png)
 
+---
 
-The server was unable to successfully reach external hosts, indicating a network configuration issue requiring further investigation.
+## Validating Network Adapter Status
 
+Administrators must verify that the network adapter itself is functioning correctly.
 
+### Network Adapter Verification
 
-!\[Connectivity Failure](screenshots/01-network-connectivity-failure.png)
+The network adapter status was reviewed using PowerShell.
 
+Key observations:
 
+* Ethernet adapter detected
+* Adapter operational
+* Network connection active
+* No adapter failures present
 
-\---
+This step confirmed that the issue was not caused by disabled or disconnected hardware.
 
+![Network Adapter Status](screenshots/05-network-adapter-status.png)
 
+---
 
-\## IP Configuration Analysis
+## Reviewing DNS Client Configuration
 
+After validating connectivity and adapter status, DNS client settings were examined.
 
+### DNS Server Configuration
 
-The first troubleshooting step was to examine the server's TCP/IP configuration.
+The configured DNS servers determine where hostname resolution requests are sent.
 
+Key observations:
 
+* DNS server entries present
+* Valid resolver configuration detected
+* DNS requests have a valid destination
 
-\### Network Configuration Review
+This verification confirmed that DNS client settings were configured correctly.
 
+![DNS Server Configuration](screenshots/06-dns-server-configuration.png)
 
+---
 
-Command:
+## Performing End-to-End Network Testing
 
+The next step was to perform a complete network connectivity test.
 
+### Test-NetConnection Analysis
 
-```powershell
+`Test-NetConnection` provides a more detailed network diagnostic than a standard ping.
 
-ipconfig /all
+Key observations:
 
-```
+* Remote host reachable
+* DNS resolution successful
+* Network communication successful
+* End-to-end connectivity verified
 
+This test confirmed that the server could communicate successfully beyond the local network.
 
+![Test NetConnection](screenshots/07-test-netconnection.png)
 
-This output was used to verify the server's IP address, subnet mask, default gateway, DNS servers, and DHCP configuration.
+---
 
+## Investigating System Events
 
+Event logs often contain valuable information when diagnosing infrastructure issues.
 
-The review confirmed that network configuration information could be collected for further analysis.
+### System Log Review
 
+The Windows System event log was reviewed to identify recent warnings, errors, or network-related events.
 
+Key observations:
 
-!\[IP Configuration Review](screenshots/02-ip-configuration-review.png)
+* Recent system events available
+* Service activity visible
+* No critical networking failures detected during review
 
+Event Viewer provides administrators with historical visibility into operating system activity and service behavior.
 
+![System Event Log Review](screenshots/08-system-event-log-review.png)
 
-\---
+---
 
+## Reviewing Active Network Connections
 
+Active network sessions and listening ports were examined.
 
-\## DNS Resolution Testing
+### Network Service Verification
 
+The `netstat -ano` command displays active connections and listening services.
 
+Key observations:
 
-After verifying IP configuration, DNS functionality was tested.
+* DNS services listening on port 53
+* Active Directory related services visible
+* Network services actively accepting traffic
+* No abnormal connection behavior observed
 
+This step confirmed that critical network services were operational.
 
+![Active Network Connections](screenshots/09-active-network-connections.png)
 
-\### DNS Name Resolution
+---
 
+## Verifying Successful Resolution
 
+A final connectivity test was performed after correcting the VirtualBox network configuration.
 
-Command:
+### Connectivity Restoration
 
+The server successfully communicated with external resources using hostname-based communication.
 
+Key observations:
 
-```powershell
+* Hostname successfully resolved
+* Responses received from remote host
+* 0% packet loss
+* Stable round-trip times
 
-nslookup google.com
+This final validation confirmed that network connectivity had been fully restored.
 
-```
+![Connectivity Restored](screenshots/10-connectivity-restored.png)
 
+---
 
+## Root Cause Analysis
 
-The query successfully returned both IPv4 and IPv6 addresses for Google.
+The original issue was caused by an incorrect VirtualBox network adapter configuration.
 
+Because the virtual machine was connected to the wrong network type, the server could not obtain valid network connectivity. This resulted in failed communication with external resources.
 
+The network adapter configuration was corrected and the virtual machine was restarted. Once a valid IP address, gateway, and DNS configuration were obtained, connectivity was restored successfully.
 
-This confirmed that DNS services were functioning properly and that hostname resolution was available.
+---
 
+## Skills Demonstrated
 
+* Windows Server Administration
+* Network Troubleshooting
+* TCP/IP Analysis
+* DNS Troubleshooting
+* Route Table Analysis
+* Connectivity Testing
+* Event Log Analysis
+* Root Cause Analysis
+* PowerShell Administration
+* Virtualization Administration
+* Infrastructure Troubleshooting
 
-!\[DNS Resolution Test](screenshots/03-dns-resolution-test.png)
+---
 
+## What I Learned
 
-
-\---
-
-
-
-\## Routing Table Verification
-
-
-
-The server routing table was reviewed to validate network path information.
-
-
-
-\### Route Analysis
-
-
-
-Command:
-
-
-
-```powershell
-
-route print
-
-```
-
-
-
-The routing table displayed a valid default route directing traffic through gateway 10.0.2.2.
-
-
-
-This verified that outbound traffic had a valid path to external networks.
-
-
-
-!\[Routing Table Review](screenshots/04-routing-table-review.png)
-
-
-
-\---
-
-
-
-\## Network Adapter Validation
-
-
-
-The operational state of the network adapter was verified.
-
-
-
-\### Adapter Status Review
-
-
-
-Command:
-
-
-
-```powershell
-
-Get-NetAdapter
-
-```
-
-
-
-The Ethernet adapter was confirmed to be operational and actively connected.
-
-
-
-This eliminated hardware and adapter state issues as a potential cause of the problem.
-
-
-
-!\[Network Adapter Status](screenshots/05-network-adapter-status.png)
-
-
-
-\---
-
-
-
-\## DNS Server Configuration Review
-
-
-
-DNS client configuration was reviewed to verify name resolution settings.
-
-
-
-\### DNS Server Assignment
-
-
-
-Command:
-
-
-
-```powershell
-
-Get-DnsClientServerAddress
-
-```
-
-
-
-The server displayed valid DNS server assignments, confirming that DNS requests had a valid destination for name resolution.
-
-
-
-!\[DNS Server Configuration](screenshots/06-dns-server-configuration.png)
-
-
-
-\---
-
-
-
-\## Connectivity Validation
-
-
-
-Additional testing was performed to validate network communication.
-
-
-
-\### End-to-End Connectivity Test
-
-
-
-Command:
-
-
-
-```powershell
-
-Test-NetConnection google.com
-
-```
-
-
-
-The test successfully validated network communication and DNS resolution.
-
-
-
-Results confirmed that the server could communicate beyond the local network.
-
-
-
-!\[Test NetConnection](screenshots/07-test-netconnection.png)
-
-
-
-\---
-
-
-
-\## Event Log Investigation
-
-
-
-System logs were reviewed to identify potential operating system or network-related events.
-
-
-
-\### System Event Review
-
-
-
-Command:
-
-
-
-```powershell
-
-Get-EventLog -LogName System -Newest 20
-
-```
-
-
-
-Recent system events were reviewed as part of the troubleshooting process.
-
-
-
-Event logs provide administrators with visibility into service failures, warnings, hardware issues, and operating system activity.
-
-
-
-!\[System Event Log Review](screenshots/08-system-event-log-review.png)
-
-
-
-\---
-
-
-
-\## Active Network Connection Analysis
-
-
-
-Active ports and network services were reviewed.
-
-
-
-\### Network Service Verification
-
-
-
-Command:
-
-
-
-```powershell
-
-netstat -ano
-
-```
-
-
-
-The output showed active listening ports including DNS and Active Directory-related services.
-
-
-
-This confirmed that critical infrastructure services were available and accepting network traffic.
-
-
-
-!\[Active Network Connections](screenshots/09-active-network-connections.png)
-
-
-
-\---
-
-
-
-\## Connectivity Restoration Verification
-
-
-
-After corrective action was implemented, final testing was performed.
-
-
-
-\### Successful Connectivity Test
-
-
-
-Command:
-
-
-
-```powershell
-
-ping google.com
-
-```
-
-
-
-The server successfully resolved the hostname and received replies from the remote host with 0% packet loss.
-
-
-
-This verified that DNS resolution, routing, and internet connectivity were functioning correctly.
-
-
-
-!\[Connectivity Restored](screenshots/10-connectivity-restored.png)
-
-
-
-\---
-
-
-
-\## Root Cause Analysis
-
-
-
-Initial testing revealed that the server could not communicate with external hosts.
-
-
-
-Investigation determined that the VirtualBox network adapter had been configured incorrectly, preventing the server from obtaining proper network connectivity.
-
-
-
-The adapter configuration was corrected and the virtual machine was restarted. Once a valid IP address, default gateway, and DNS configuration were obtained, connectivity testing confirmed successful communication with external resources.
-
-
-
-\---
-
-
-
-\## Skills Demonstrated
-
-
-
-\* Windows Server Administration
-
-\* Network Troubleshooting
-
-\* DNS Troubleshooting
-
-\* TCP/IP Analysis
-
-\* Connectivity Testing
-
-\* Event Log Analysis
-
-\* Root Cause Analysis
-
-\* PowerShell Administration
-
-\* VirtualBox Administration
-
-\* Systems Troubleshooting Methodology
-
-
-
-\---
-
-
-
-\## What I Learned
-
-
-
-This project reinforced the importance of following a structured troubleshooting methodology when diagnosing infrastructure issues. By validating connectivity, reviewing network configuration, testing DNS services, examining routing information, and analyzing system logs, I gained practical experience identifying and resolving network problems in a Windows Server environment.
+This project reinforced the importance of following a structured troubleshooting methodology when diagnosing network issues. By validating connectivity, reviewing TCP/IP configuration, testing DNS resolution, examining routing information, investigating event logs, and verifying active services, I gained hands-on experience using the same troubleshooting workflow commonly performed by Systems Administrators in production environments.
 
